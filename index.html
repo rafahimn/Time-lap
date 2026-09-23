@@ -16,7 +16,6 @@
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         :root {
             --premium-ease: cubic-bezier(.16, 1, .3, 1);
@@ -58,7 +57,9 @@
         @keyframes sparkleLayer { 0%{ transform:translateY(0); } 100%{ transform:translateY(-50px); } }
         @keyframes softPulse { 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:0.92; } }
 
-        #ytPlayerWrap { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; }
+        /* Hidden host for bg music: gets either an <audio> or a YT iframe injected automatically */
+        #bgMusicHost { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; overflow:hidden; }
+        #bgMusicHost iframe { position:absolute; width:1px; height:1px; border:0; }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
         .countdown-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
@@ -179,7 +180,6 @@
             50%      { transform: rotate(var(--sway-pos, 2.5deg)); }
         }
 
-        /* Flame — teardrop shape with warm glow, animated flicker */
         .candle-flame {
             position: relative;
             width: 11px;
@@ -221,7 +221,6 @@
             100% { opacity: 1;    transform: translate(-50%,-50%) scale(1.08); }
         }
 
-        /* Wick */
         .candle-wick {
             width: 1.5px;
             height: 4px;
@@ -231,7 +230,6 @@
             z-index: 2;
         }
 
-        /* Wax body */
         .candle-body {
             position: relative;
             width: 14px;
@@ -250,7 +248,6 @@
             overflow: hidden;
         }
         .candle-body::before {
-            /* melted wax rim on top */
             content: '';
             position: absolute;
             top: -1px; left: 50%;
@@ -272,7 +269,6 @@
         .candle-stripe.s2 { top: 20px; }
         .candle-stripe.s3 { top: 31px; }
 
-        /* Blown-out state */
         .candle.blown {
             pointer-events: none;
             animation-play-state: paused;
@@ -451,9 +447,8 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
 
-    <div id="ytPlayerWrap" aria-hidden="true">
-        <div id="ytPlayer"></div>
-    </div>
+    <!-- Hidden host for bg music: gets either an <audio> or a YT iframe injected automatically -->
+    <div id="bgMusicHost" aria-hidden="true"></div>
 
     <video class="video-bg" autoplay muted loop playsinline>
         <source src="https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4" type="video/mp4">
@@ -688,8 +683,8 @@
                 <div class="photo-date">Lost in Bengali Lore</div>
                 <div class="photo-caption">May your journey ahead be filled with happiness, success, and endless smiles😊💕</div>
             </div>
-            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786s823873/qj1taxj8jw4hyu1c4wvf.jpg')">
-                <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786823873/qj1staxj8jw4hyu1c4wvf.jpg" alt="Together Vibes" class="photo-img">
+            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg')">
+                <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg" alt="Together Vibes" class="photo-img">
                 <div class="photo-date">Her Smile Says It All</div>
                 <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️</div>
             </div>
@@ -735,10 +730,10 @@
 
     <div class="secret-screen" id="secretScreen">
         <div class="secret-container">
-            <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg"
+            <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790162289/att.07LuxnM7mAYfziNhB0ML4RlfiR3GiyL3ggU0LoPoSA8.JPG.jpg"
                  alt="Secret Memory"
                  class="secret-photo"
-                 onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg')">
+                 onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790162289/att.07LuxnM7mAYfziNhB0ML4RlfiR3GiyL3ggU0LoPoSA8.JPG.jpg')">
             <button class="soulmate-btn" onclick="goToInstagram()">
                 <i class="fab fa-instagram"></i> See Your Friend
             </button>
@@ -749,6 +744,21 @@
         (function() {
             emailjs.init("MV90CKf_ZoIgGoU9w");
         })();
+
+        /* ═══════════════════════════════════════════════════════════════════
+           🎵 BG MUSIC CONFIG — Change ONLY this to switch sources
+           ═══════════════════════════════════════════════════════════════════
+           Supported formats (auto-detected):
+             YouTube: "https://youtu.be/73Hld4gpaPA"
+             YouTube: "https://www.youtube.com/watch?v=73Hld4gpaPA"
+             YouTube: "https://www.youtube.com/shorts/73Hld4gpaPA"
+             YouTube: "73Hld4gpaPA"   (just the ID)
+             Audio:   "https://res.cloudinary.com/.../song.mp3"
+             Audio:   "https://example.com/music/song.ogg"
+             Audio:   "https://example.com/music/song.wav"
+           ═══════════════════════════════════════════════════════════════════ */
+        const BG_MUSIC_SOURCE = "https://youtu.be/73Hld4gpaPA";
+        /* ═══════════════════════════════════════════════════════════════════ */
 
         const CONFIG = {
             month: 8,
@@ -764,68 +774,132 @@
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
 
-        const YT_VIDEO_ID = '73Hld4gpaPA';
+        /* ─────────────────────────────────────────────────────────────
+           Adaptive BG music engine — YouTube OR direct audio URL
+           ───────────────────────────────────────────────────────────── */
+        let bgMode = null;                // 'youtube' | 'audio'
         let ytPlayer = null;
         let ytPlayerReady = false;
         let ytApiReady = false;
         let pendingPlay = false;
+        let birthdayAudioElement = null;
 
-        window.onYouTubeIframeAPIReady = function() {
-            ytApiReady = true;
-            ytPlayer = new YT.Player('ytPlayer', {
-                videoId: YT_VIDEO_ID,
-                playerVars: {
-                    autoplay: 0,
-                    loop: 1,
-                    playlist: YT_VIDEO_ID,
-                    controls: 0,
-                    disablekb: 1,
-                    fs: 0,
-                    modestbranding: 1,
-                    playsinline: 1,
-                    rel: 0
-                },
-                events: {
-                    onReady: function() {
-                        ytPlayerReady = true;
-                        try { ytPlayer.setVolume(100); } catch (e) {}
-                        if (pendingPlay && !birthdayAudioPlayed) {
-                            pendingPlay = false;
-                            attemptYtPlay();
-                        }
-                    },
-                    onStateChange: function(event) {
-                        if (event.data === YT.PlayerState.PLAYING) {
-                            birthdayAudioPlayed = true;
-                        }
-                    }
-                }
-            });
-        };
+        function extractYouTubeId(url) {
+            if (!url) return null;
+            const s = String(url).trim();
+            const patterns = [
+                /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/|youtube-nocookie\.com\/embed\/)([A-Za-z0-9_-]{11})/,
+                /^([A-Za-z0-9_-]{11})$/
+            ];
+            for (const p of patterns) {
+                const m = s.match(p);
+                if (m) return m[1];
+            }
+            return null;
+        }
 
-        function attemptYtPlay() {
-            if (!ytPlayer || !ytPlayerReady) { pendingPlay = true; return; }
-            try {
-                ytPlayer.unMute();
-                ytPlayer.setVolume(100);
-                ytPlayer.playVideo();
-            } catch (e) {}
+        function loadYouTubeAPI(cb) {
+            if (window.YT && window.YT.Player) { cb(); return; }
+            if (window._ytApiLoading) { window._ytApiCallbacks.push(cb); return; }
+            window._ytApiLoading = true;
+            window._ytApiCallbacks = [cb];
+            window.onYouTubeIframeAPIReady = function() {
+                window._ytApiCallbacks.forEach(f => { try { f(); } catch(e) {} });
+                window._ytApiCallbacks = [];
+            };
+            const s = document.createElement('script');
+            s.src = 'https://www.youtube.com/iframe_api';
+            document.head.appendChild(s);
+        }
+
+        function initBgMusic() {
+            const host = document.getElementById('bgMusicHost');
+            if (!host) return;
+
+            const ytId = extractYouTubeId(BG_MUSIC_SOURCE);
+
+            if (ytId) {
+                bgMode = 'youtube';
+                loadYouTubeAPI(() => {
+                    ytApiReady = true;
+                    const playerDiv = document.createElement('div');
+                    playerDiv.id = 'ytPlayer';
+                    host.appendChild(playerDiv);
+                    ytPlayer = new YT.Player('ytPlayer', {
+                        videoId: ytId,
+                        playerVars: {
+                            autoplay: 0,
+                            loop: 1,
+                            playlist: ytId,
+                            controls: 0,
+                            disablekb: 1,
+                            fs: 0,
+                            modestbranding: 1,
+                            playsinline: 1,
+                            rel: 0
+                        },
+                        events: {
+                            onReady: function() {
+                                ytPlayerReady = true;
+                                try { ytPlayer.setVolume(100); } catch(e) {}
+                                if (pendingPlay && !birthdayAudioPlayed) {
+                                    pendingPlay = false;
+                                    attemptBgPlay();
+                                }
+                            },
+                            onStateChange: function(e) {
+                                if (e.data === YT.PlayerState.PLAYING) birthdayAudioPlayed = true;
+                            }
+                        }
+                    });
+                });
+            } else {
+                bgMode = 'audio';
+                const audio = document.createElement('audio');
+                audio.id = 'bgAudio';
+                audio.preload = 'auto';
+                audio.loop = true;
+                audio.crossOrigin = 'anonymous';
+                audio.src = BG_MUSIC_SOURCE;
+                host.appendChild(audio);
+                birthdayAudioElement = audio;
+            }
+        }
+
+        function attemptBgPlay() {
+            if (bgMode === 'youtube') {
+                if (!ytPlayer || !ytPlayerReady) { pendingPlay = true; return; }
+                try {
+                    ytPlayer.unMute();
+                    ytPlayer.setVolume(100);
+                    ytPlayer.playVideo();
+                } catch(e) { pendingPlay = true; }
+            } else if (bgMode === 'audio') {
+                if (!birthdayAudioElement) return;
+                birthdayAudioElement.play()
+                    .then(() => { birthdayAudioPlayed = true; })
+                    .catch(() => { /* retry on next user tap */ });
+            }
         }
 
         function playBirthdayAudio() {
             if (birthdayAudioPlayed) return;
-            if (!ytApiReady || !ytPlayerReady) {
-                pendingPlay = true;
-                return;
-            }
-            attemptYtPlay();
+            attemptBgPlay();
         }
 
         function pauseBirthdayAudio() {
-            if (ytPlayer && ytPlayerReady && typeof ytPlayer.pauseVideo === 'function') {
-                try { ytPlayer.pauseVideo(); } catch (e) {}
+            if (bgMode === 'youtube') {
+                if (ytPlayer && ytPlayerReady && typeof ytPlayer.pauseVideo === 'function') {
+                    try { ytPlayer.pauseVideo(); } catch(e) {}
+                }
+            } else if (bgMode === 'audio' && birthdayAudioElement) {
+                try {
+                    birthdayAudioElement.pause();
+                    birthdayAudioElement.currentTime = 0;
+                } catch(e) {}
             }
         }
+        /* ───────────────────────────────────────────────────────────── */
 
         function createFloatingElement() {
             const container = document.getElementById('floatingElements');
@@ -1920,8 +1994,9 @@
             displayReason();
         };
 
+        // ⚡ "Enter your storyline" button handler — this is where BG music shuts off
         window.goToReasonsScreen = function() {
-            pauseBirthdayAudio();
+            pauseBirthdayAudio();          // ⬅ stops YouTube iframe OR <audio> bg music
             birthdayAudioPlayed = false;
             currentReasonIndex = 0;
 
@@ -2017,7 +2092,7 @@
         };
 
         window.goToInstagram = function() {
-            window.open('https://www.instagram.com/rafahimnn', '_blank');
+            window.open('https://www.instagram.com/sifaat_sakib?stkn=dzkwOTNzZTVndzZ4&utm_source=qr', '_blank');
         };
 
         function confetti(options) {
@@ -2025,6 +2100,11 @@
                 window.confetti(options);
             }
         }
+
+        /* ─────────────────────────────────────────────────────────────
+           Boot: init bg music engine + start countdown
+           ───────────────────────────────────────────────────────────── */
+        initBgMusic();
 
         updateCountdown();
         setInterval(updateCountdown, 1000);
