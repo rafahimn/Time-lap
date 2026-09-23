@@ -16,20 +16,16 @@
     <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
-    <!-- YouTube IFrame Player API (for birthday song) -->
     <script src="https://www.youtube.com/iframe_api"></script>
     <style>
         :root {
             --premium-ease: cubic-bezier(.16, 1, .3, 1);
             --premium-ease-out: cubic-bezier(.2, .8, .2, 1);
-            --glass-rim: rgba(255, 255, 255, 0.55);
-            --glass-edge: rgba(120, 80, 140, 0.35);
         }
 
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:'Quicksand',sans-serif; overflow-x:hidden; color:#4a4a4a; min-height:100vh; }
 
-        /* ── Cinematic film grain over everything (subtle, colour-safe) ── */
         body::before {
             content:'';
             position:fixed; inset:0;
@@ -62,7 +58,6 @@
         @keyframes sparkleLayer { 0%{ transform:translateY(0); } 100%{ transform:translateY(-50px); } }
         @keyframes softPulse { 0%,100%{ transform:scale(1); opacity:1; } 50%{ transform:scale(1.08); opacity:0.92; } }
 
-        /* Hidden YouTube player (audio only) */
         #ytPlayerWrap { position:fixed; top:-9999px; left:-9999px; width:1px; height:1px; pointer-events:none; opacity:0; }
 
         .countdown-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; background:linear-gradient(135deg, rgba(255,209,220,0.4), rgba(230,230,250,0.4)); backdrop-filter:blur(8px); z-index:1000; transition:1s; text-align:center; padding:20px; }
@@ -83,7 +78,6 @@
         .enter-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 18px 32px -10px rgba(255,105,180,0.75), inset 0 1px 0 rgba(255,255,255,0.6); }
         .enter-btn:active { transform:translateY(0) scale(0.96); }
 
-        /* ── CAKE SCREEN ── */
         .cake-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:rgba(255,255,255,0.2); backdrop-filter:blur(10px); z-index:800; padding:20px; text-align:center; }
         .cake-screen.show { display:flex; }
 
@@ -147,25 +141,175 @@
         .cut-hint { font-size:14px; color:white; text-shadow:1px 1px 3px rgba(0,0,0,0.5); margin:16px 0 6px; opacity:0.75; transition:0.3s; }
         .cut-hint.ready { opacity:1; animation:softPulse 1.5s infinite; font-weight:600; }
 
-        .candles { display:flex; flex-wrap:wrap; justify-content:center; align-items:center; gap:8px; margin:20px 0; min-height:80px; }
-        .candle {
-            cursor:pointer; transition:0.2s;
-            animation: flicker var(--flicker-dur,0.5s) infinite alternate,
-                       candleSway var(--sway-dur,2.6s) ease-in-out infinite;
-            display:inline-block; font-size:clamp(30px,8vw,42px);
-            filter: drop-shadow(0 0 6px gold)
-                    drop-shadow(0 0 16px rgba(255,200,80,0.55))
-                    drop-shadow(0 0 28px rgba(255,160,60,0.28));
-            transform-origin:50% 90%;
+        /* ═══════════════════════════════════════════════════════════
+           PURE CSS CANDLES — no SVG, no gradient refs, works everywhere
+           ═══════════════════════════════════════════════════════════ */
+        .candles {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+            gap: 5px 4px;
+            margin: 18px 0 20px;
+            min-height: 80px;
+            padding: 0 6px;
         }
-        .candle.blown { opacity:0.2; filter:grayscale(1); pointer-events:none; animation:none; }
-        @keyframes flicker { from{ opacity:1; transform:scale(1); } to{ opacity:0.82; transform:scale(1.1); } }
-        @keyframes candleSway { 0%,100%{ rotate:var(--sway-neg,-3deg); } 50%{ rotate:var(--sway-pos,3deg); } }
+
+        .candle {
+            position: relative;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            width: 18px;
+            height: 72px;
+            cursor: pointer;
+            transform-origin: 50% 92%;
+            animation: candleSway var(--sway-dur, 2.6s) ease-in-out infinite;
+            animation-delay: var(--sway-delay, 0s);
+            transition: transform 0.2s ease;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        .candle:hover { transform: scale(1.12); }
+        .candle:active { transform: scale(0.94); }
+
+        @keyframes candleSway {
+            0%, 100% { transform: rotate(var(--sway-neg, -2.5deg)); }
+            50%      { transform: rotate(var(--sway-pos, 2.5deg)); }
+        }
+
+        /* Flame — teardrop shape with warm glow, animated flicker */
+        .candle-flame {
+            position: relative;
+            width: 11px;
+            height: 17px;
+            margin-bottom: 1px;
+            background: radial-gradient(ellipse 60% 70% at 50% 65%,
+                        #fff8b0 0%,
+                        #ffcf44 30%,
+                        #ff8a22 65%,
+                        #f05a1a 90%,
+                        #d14210 100%);
+            border-radius: 50% 50% 40% 40% / 62% 62% 38% 38%;
+            box-shadow:
+                0 0 8px 2px rgba(255, 180, 60, 0.85),
+                0 0 18px 6px rgba(255, 140, 40, 0.45),
+                0 0 32px 10px rgba(255, 100, 30, 0.22);
+            animation: flameFlicker 0.42s ease-in-out infinite alternate;
+            transform-origin: 50% 88%;
+            z-index: 3;
+        }
+        .candle-flame::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 42%;
+            width: 5px;
+            height: 8px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(ellipse at 50% 60%, #ffffff 0%, #fffbd0 55%, rgba(255, 240, 150, 0) 100%);
+            border-radius: 50% 50% 45% 45%;
+            animation: flameInner 0.28s ease-in-out infinite alternate;
+        }
+        @keyframes flameFlicker {
+            0%   { transform: scale(1)     translateY(0)    rotate(-2deg); }
+            100% { transform: scale(1.08)  translateY(-1px) rotate(2deg); }
+        }
+        @keyframes flameInner {
+            0%   { opacity: 0.78; transform: translate(-50%,-50%) scale(0.92); }
+            100% { opacity: 1;    transform: translate(-50%,-50%) scale(1.08); }
+        }
+
+        /* Wick */
+        .candle-wick {
+            width: 1.5px;
+            height: 4px;
+            background: linear-gradient(180deg, #2a1c14, #5a3a26);
+            border-radius: 1px;
+            margin-bottom: -1px;
+            z-index: 2;
+        }
+
+        /* Wax body */
+        .candle-body {
+            position: relative;
+            width: 14px;
+            height: 42px;
+            background: linear-gradient(90deg,
+                        #c9b28a 0%,
+                        #f3e5c3 18%,
+                        #fffdf3 50%,
+                        #f3e5c3 82%,
+                        #c9b28a 100%);
+            border-radius: 3px 3px 2px 2px;
+            box-shadow:
+                0 3px 6px rgba(60, 30, 60, 0.35),
+                inset 0 -3px 5px rgba(0, 0, 0, 0.12),
+                inset 0 2px 2px rgba(255, 255, 255, 0.7);
+            overflow: hidden;
+        }
+        .candle-body::before {
+            /* melted wax rim on top */
+            content: '';
+            position: absolute;
+            top: -1px; left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 4px;
+            background: radial-gradient(ellipse at 50% 40%, #fffdf0 0%, #f3e5c3 70%, #d8c298 100%);
+            border-radius: 50%;
+            box-shadow: 0 1px 1px rgba(0,0,0,0.15);
+        }
+        .candle-stripe {
+            position: absolute;
+            left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #e0679a, #ff8eb5 50%, #e0679a);
+            opacity: 0.9;
+        }
+        .candle-stripe.s1 { top: 9px; }
+        .candle-stripe.s2 { top: 20px; }
+        .candle-stripe.s3 { top: 31px; }
+
+        /* Blown-out state */
+        .candle.blown {
+            pointer-events: none;
+            animation-play-state: paused;
+        }
+        .candle.blown .candle-flame { display: none; }
+        .candle.blown .candle-body {
+            filter: grayscale(0.55) brightness(0.78);
+            box-shadow:
+                0 3px 6px rgba(60, 30, 60, 0.3),
+                inset 0 -3px 5px rgba(0, 0, 0, 0.15);
+        }
+        .candle.blown::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 8px;
+            height: 22px;
+            transform: translateX(-50%);
+            background: radial-gradient(ellipse 60% 70% at 50% 100%,
+                        rgba(180, 180, 180, 0.55) 0%,
+                        rgba(150, 150, 150, 0.25) 50%,
+                        transparent 100%);
+            border-radius: 50% 50% 30% 30%;
+            animation: smokeRise 1.8s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes smokeRise {
+            0%   { opacity: 0;    transform: translate(-50%, 2px)   scale(0.7); }
+            25%  { opacity: 0.75; }
+            100% { opacity: 0;    transform: translate(-50%, -18px) scale(1.5); }
+        }
 
         .sparkle-trail { position:fixed; top:0; left:0; pointer-events:none; z-index:9998; font-size:14px; will-change:transform,opacity; }
         .smoke-wisp { position:fixed; top:0; left:0; pointer-events:none; z-index:9997; font-size:15px; will-change:transform,opacity; filter:blur(0.3px); }
 
-        .cake-status { position:relative; font-size:clamp(16px,4vw,20px); color:white; margin:20px 0; padding:16px 12px 12px; border-radius:40px; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px); text-shadow:1px 1px 4px rgba(0,0,0,0.5); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+        .cake-status { position:relative; font-size:clamp(16px,4vw,20px); color:white; margin:16px 0; padding:16px 12px 12px; border-radius:40px; background:rgba(0,0,0,0.5); backdrop-filter:blur(5px); text-shadow:1px 1px 4px rgba(0,0,0,0.5); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
         .cake-status::before {
             content: 'BIRTHDAY CELEBRATION';
             display: block;
@@ -177,7 +321,7 @@
             font-weight: 600;
         }
 
-        .mic-hint { font-size:13px; color:rgba(255,255,255,0.85); margin-bottom:12px; text-shadow:1px 1px 3px rgba(0,0,0,0.5); padding:8px 14px; border-radius:20px; transition:0.3s; display:inline-block; }
+        .mic-hint { font-size:13px; color:rgba(255,255,255,0.85); margin-bottom:10px; text-shadow:1px 1px 3px rgba(0,0,0,0.5); padding:8px 14px; border-radius:20px; transition:0.3s; display:inline-block; }
         .mic-hint.listening { color:#fff; background:rgba(255,105,180,0.35); animation:softPulse 1s infinite; font-weight:600; }
         .mic-hint.denied { color:#ffe0e0; }
 
@@ -194,7 +338,6 @@
         .cake-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85), inset 0 1px 0 rgba(255,255,255,0.6); }
         .cake-next-btn:active { transform:scale(0.96); }
 
-        /* ── REASONS ── */
         .reasons-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(-45deg,#ffe6e6,#e6e6ff,#ffebf5); background-size:400% 400%; animation:gradientBG 15s ease infinite; z-index:750; padding:20px; }
         .reasons-screen.show { display:flex; }
         .reasons-header h1 { font-family:'Bubblegum Sans',cursive; font-size:clamp(2.5rem,8vw,3.5rem); color:#ff69b4; text-shadow:2px 2px 4px rgba(255,105,180,0.3); margin-bottom:2rem; animation:bounce 1s ease infinite; text-align:center; }
@@ -214,7 +357,6 @@
         .reasons-btn.story-mode:hover { transform:scale(1.14); }
         @keyframes pulse { 0%,100%{ transform:scale(1.06); } 50%{ transform:scale(1.16); } }
 
-        /* ── PHOTO ── */
         .photo-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#ffd1dc 0%,#e6e6fa 25%,#ffefd5 50%,#e6e6fa 75%,#ffd1dc 100%); background-size:400% 400%; animation:gradientFlow 15s ease infinite; z-index:700; padding:80px 20px 40px; }
         .photo-screen.show { display:block; }
         @keyframes gradientFlow { 0%{ background-position:0% 50%; } 50%{ background-position:100% 50%; } 100%{ background-position:0% 50%; } }
@@ -233,7 +375,6 @@
         .photo-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.85); }
         .photo-next-btn:active { transform:scale(0.96); }
 
-        /* ── VIDEO ── */
         .video-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; overflow-y:auto; background:linear-gradient(135deg,#a8edea 0%,#fed6e3 100%); z-index:600; padding:60px 20px 40px; }
         .video-screen.show { display:flex; }
         .video-screen h2 { font-family:'Dancing Script',cursive; font-size:2.5rem; color:#b0306e; text-shadow:2px 2px 8px rgba(255,255,255,0.8); margin-bottom:2rem; text-align:center; }
@@ -248,7 +389,6 @@
         .video-next-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .video-next-btn:active { transform:scale(0.96); }
 
-        /* ── LETTER ── */
         .letter-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#fdfbfb 0%,#ebedee 100%); z-index:500; padding:20px; box-sizing:border-box; overflow-y:auto; }
         .letter-screen.show { display:flex; }
         .letter-container { width:100%; max-width:600px; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.98), rgba(255,250,252,0.94)); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 30px 55px -20px rgba(120,80,140,0.4), inset 0 1px 0 rgba(255,255,255,0.9); text-align:center; margin:auto; display:none; border:1px solid rgba(255,255,255,0.7); }
@@ -274,7 +414,6 @@
         .letter-return-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(255,105,180,0.85); }
         .letter-return-btn:active { transform:scale(0.96); }
 
-        /* ── SECRET ── */
         .secret-screen { position:fixed; top:0; left:0; width:100%; height:100%; display:none; flex-direction:column; align-items:center; justify-content:center; background:linear-gradient(135deg,#ffe6f0,#ffe0f0); z-index:550; padding:20px; box-sizing:border-box; overflow-y:auto; -webkit-overflow-scrolling:touch; }
         .secret-screen.show { display:flex; }
         .secret-container { max-width:600px; width:100%; box-sizing:border-box; background:linear-gradient(145deg, rgba(255,255,255,0.92), rgba(255,250,253,0.86)); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); padding:clamp(1.25rem,5vw,2rem); border-radius:30px; box-shadow:0 28px 50px -18px rgba(120,80,140,0.45), inset 0 1px 0 rgba(255,255,255,0.85); text-align:center; border:1px solid rgba(255,255,255,0.75); margin:auto; }
@@ -286,7 +425,6 @@
         .soulmate-btn:hover { transform:translateY(-2px) scale(1.06); box-shadow:0 20px 34px -12px rgba(155,109,255,0.9); }
         .soulmate-btn:active { transform:scale(0.96); }
 
-        /* ── LIGHTBOX ── */
         .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:10001; justify-content:center; align-items:center; padding:20px; perspective:1200px; touch-action:pan-y; }
         .lightbox.show { display:flex; }
         .lightbox img { max-width:90%; max-height:90%; border-radius:10px; border:3px solid white; box-shadow:0 0 50px rgba(255,255,255,0.3); transform-style:preserve-3d; touch-action:none; user-select:none; -webkit-user-drag:none; }
@@ -313,13 +451,12 @@
         <source src="https://res.cloudinary.com/dpctt0wao/video/upload/v1773211012/WhatsApp_Audio_2026-03-11_at_12.33.50_PM_jhzjmt.mp3" type="audio/mpeg">
     </audio>
 
-    <!-- Hidden YouTube player used for the birthday song (audio only) -->
     <div id="ytPlayerWrap" aria-hidden="true">
-        <div id="tPlayer"></div>
+        <div id="ytPlayer"></div>
     </div>
 
     <video class="video-bg" autoplay muted loop playsinline>
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp" type="video/mp4">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4" type="video/mp4">
     </video>
     <div class="overlay"></div>
 
@@ -489,7 +626,7 @@
                     <text x="270" y="120" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 120)">happy</text>
                     <text x="270" y="153" font-family="'Dancing Script', cursive" font-weight="700" font-size="32" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 153)">birthday</text>
                     <path d="M266 169 c-4 -6 -14 -2 -8 6 c3 4 8 4 8 4 s5 0 8 -4 c6 -8 -4 -12 -8 -6 z" fill="#fdf8f0" opacity="0.9"/>
-                    <text x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Othoy</text>
+                    <text x="270" y="203" font-family="'Dancing Script', cursive" font-weight="700" font-size="25" fill="#fdf8f0" text-anchor="middle" transform="rotate(-2 270 203)">Asmuu</text>
 
                     <line id="sliceShadow" x1="45" y1="199" x2="355" y2="199" stroke="#3d2c20" stroke-width="12" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="0.5"/>
                     <line id="sliceLine" x1="45" y1="195" x2="355" y2="195" stroke="url(#sliceGrad)" stroke-width="11" stroke-linecap="round" stroke-dasharray="330" stroke-dashoffset="330" opacity="1"/>
@@ -538,10 +675,9 @@
     <div class="photo-screen" id="photoScreen">
         <div class="photo-header">
             <h1>The Beautiful Moments </h1>
-            <p>Every moment spent with you has been magical. Let's cherish these precious memories Othoy...</p>
+            <p>Every moment spent with you has been magical. Let's cherish these precious memories Asmuu...</p>
         </div>
         <div class="photo-container">
-            <!-- ═══ আসল ছবি ═══ -->
             <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8770_2.JPG.jpg')">
                 <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8770_2.JPG.jpg" alt="What is time" class="photo-img">
                 <div class="photo-date">A Magical Reflection 💖</div>
@@ -557,9 +693,6 @@
                 <div class="photo-date">Her Smile Says It All</div>
                 <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️</div>
             </div>
-
-            
-            </div>
         </div>
         <button class="photo-next-btn" onclick="goToVideoScreen()">Again Your Storylane 🎥</button>
     </div>
@@ -568,18 +701,12 @@
         <h2>A Special Video Message</h2>
         <div class="video-container">
             <div class="video-grid">
-                <!-- ═══ আসল ভিডিও ═══ -->
                 <div class="video-card">
-                    <h3>Happy Birthday Othoy❤️🎂</h3>
+                    <h3>Happy Birthday Asmuu ❤️🎂</h3>
                     <div class="video-wrapper">
                         <video controls preload="metadata">
-                            <source src="https://res.cloudinary.com/be9ttbc0/video/upload/v1790154687/copy_D86AECD0-20A3-4EC1-8851-220A478044A3.mov">
+                            <source src="https://res.cloudinary.com/be9ttbc0/video/upload/v1790154687/copy_D86AECD0-20A3-4EC1-8851-220A478044A3.mov" type="video/mp4">
                         </video>
-                    </div>
-                </div>
-                </div>
-
-
                     </div>
                 </div>
             </div>
@@ -608,10 +735,10 @@
 
     <div class="secret-screen" id="secretScreen">
         <div class="secret-container">
-            <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/dcdqkuihl9g0ztwpugoar.png"
+            <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg"
                  alt="Secret Memory"
                  class="secret-photo"
-                 onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786828377/cdqdkuihl9g0ztwpugoar.png')">
+                 onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790153534/IMG_8771_2.jpg.jpg')">
             <button class="soulmate-btn" onclick="goToInstagram()">
                 <i class="fab fa-instagram"></i> See Your Friend
             </button>
@@ -619,7 +746,6 @@
     </div>
 
     <script>
-        // EmailJS initialization
         (function() {
             emailjs.init("MV90CKf_ZoIgGoU9w");
         })();
@@ -638,10 +764,6 @@
             CONFIG.name = decodeURIComponent(urlParams.get('name'));
         }
 
-        /* ─────────────────────────────────────────────────────────────
-           YouTube IFrame Player — hidden audio for the birthday song
-           Video: https://youtu.be/73Hld4gpaPA
-           ───────────────────────────────────────────────────────────── */
         const YT_VIDEO_ID = '73Hld4gpaPA';
         let ytPlayer = null;
         let ytPlayerReady = false;
@@ -655,7 +777,7 @@
                 playerVars: {
                     autoplay: 0,
                     loop: 1,
-                    playlist: YT_VIDEO_ID,   // required so loop works
+                    playlist: YT_VIDEO_ID,
                     controls: 0,
                     disablekb: 1,
                     fs: 0,
@@ -687,9 +809,7 @@
                 ytPlayer.unMute();
                 ytPlayer.setVolume(100);
                 ytPlayer.playVideo();
-            } catch (e) {
-                // browser blocked it — will retry on next user tap
-            }
+            } catch (e) {}
         }
 
         function playBirthdayAudio() {
@@ -706,8 +826,6 @@
                 try { ytPlayer.pauseVideo(); } catch (e) {}
             }
         }
-
-        /* ───────────────────────────────────────────────────────────── */
 
         function createFloatingElement() {
             const container = document.getElementById('floatingElements');
@@ -851,26 +969,6 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
                 noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
                 noise.start(); noise.stop(ctx.currentTime + 0.25);
-            } catch (e) {}
-        }
-        function playCutSlice() {
-            try {
-                const ctx = getSfxCtx();
-                const bufferSize = ctx.sampleRate * 0.18;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'highpass';
-                filter.frequency.setValueAtTime(2200, ctx.currentTime);
-                filter.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.18);
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.18, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
-                noise.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
-                noise.start(); noise.stop(ctx.currentTime + 0.18);
             } catch (e) {}
         }
         function playCakeThud() {
@@ -1048,16 +1146,12 @@
             typeNextChar();
         }
 
-        // Audio: no visible button. First user interaction unlocks audio context,
-        // and every subsequent autoplay attempt (birthday track) succeeds on top of that.
         function handleGlobalClick() {
             if (!audioAllowed) {
                 audioAllowed = true;
             }
-
             const now = new Date();
             const isBirthdayToday = isBirthday(now);
-
             if (isBirthdayToday && !birthdayAudioPlayed) {
                 playBirthdayAudio();
             }
@@ -1163,7 +1257,6 @@
 
         function updateCountdown() {
             const now = new Date();
-
             const isBirthdayToday = isBirthday(now);
 
             document.getElementById('countdownMessage').innerHTML =
@@ -1302,6 +1395,21 @@
             return `${date.getFullYear()}-${month}-${day}`;
         }
 
+        // ═══════════════════════════════════════════════════════════
+        //  PURE HTML+CSS candle builder — no SVG, no gradient refs
+        // ═══════════════════════════════════════════════════════════
+        function buildCandleHTML() {
+            return `
+                <div class="candle-flame"></div>
+                <div class="candle-wick"></div>
+                <div class="candle-body">
+                    <div class="candle-stripe s1"></div>
+                    <div class="candle-stripe s2"></div>
+                    <div class="candle-stripe s3"></div>
+                </div>
+            `;
+        }
+
         function renderCake() {
             const cakeEmoji = document.getElementById('cakeEmoji');
             const candlesDiv = document.getElementById('candles');
@@ -1337,15 +1445,17 @@
             resetSliceLine();
             hideSliceFromPlate();
 
+            // Build candles with pure HTML/CSS — bulletproof on all devices
             let candlesHtml = '';
+            const candleMarkup = buildCandleHTML();
             for (let i = 0; i < totalCandles; i++) {
                 const blown = i < candlesBlown ? 'blown' : '';
-                const flickerDur = (0.35 + Math.random() * 0.35).toFixed(2);
-                const swayDur = (1.8 + Math.random() * 2.2).toFixed(2);
-                const swayNeg = -(2 + Math.random() * 5).toFixed(1);
-                const swayPos = (2 + Math.random() * 5).toFixed(1);
-                const style = `--flicker-dur:${flickerDur}s;--sway-dur:${swayDur}s;--sway-neg:${swayNeg}deg;--sway-pos:${swayPos}deg;animation-delay:-${(Math.random()*2).toFixed(2)}s;`;
-                candlesHtml += `<span class="candle ${blown}" style="${style}" onclick="blowCandle(${i})">🕯️</span>`;
+                const swayDur = (2.2 + Math.random() * 1.8).toFixed(2);
+                const swayDelay = (-Math.random() * 2).toFixed(2);
+                const swayNeg = -(2 + Math.random() * 3).toFixed(1);
+                const swayPos = (2 + Math.random() * 3).toFixed(1);
+                const style = `--sway-dur:${swayDur}s;--sway-delay:${swayDelay}s;--sway-neg:${swayNeg}deg;--sway-pos:${swayPos}deg;`;
+                candlesHtml += `<div class="candle ${blown}" style="${style}" onclick="blowCandle(${i})" role="button" aria-label="Blow out candle ${i+1}">${candleMarkup}</div>`;
             }
             candlesDiv.innerHTML = candlesHtml;
 
@@ -1358,7 +1468,7 @@
                 stopMicrophone();
             } else {
                 const remaining = totalCandles - candlesBlown;
-                statusDiv.textContent = `${remaining} candles burning - Blow or tap`;
+                statusDiv.textContent = `${remaining} candle${remaining !== 1 ? 's' : ''} burning — blow or tap to celebrate 🎂`;
                 if (tableKnife) tableKnife.classList.remove('ready');
                 if (knifeLabel) knifeLabel.classList.remove('show');
             }
@@ -1377,7 +1487,7 @@
                 const el = spans[i];
                 if (!el) continue;
                 const r = el.getBoundingClientRect();
-                centers.push({ x: r.left + r.width / 2, y: r.top + r.height * 0.25 });
+                centers.push({ x: r.left + r.width / 2, y: r.top + 8 });
             }
             return centers;
         }
@@ -1413,7 +1523,7 @@
             if (cakeCut || candlesBlown === totalCandles) return;
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
                 const hint = document.getElementById('micHint');
-                hint.textContent = "⚠️ Microphone isn't supported on this device — tap to blow out the candles";
+                hint.textContent = "⚠️ Microphone isn't supported — tap the candles to blow them out";
                 hint.classList.add('denied');
                 return;
             }
@@ -1453,7 +1563,7 @@
                 .catch(() => {
                     micDenied = true;
                     const hint = document.getElementById('micHint');
-                    hint.textContent = "⚠️ Mic permission wasn't granted — just tap to blow out the candles";
+                    hint.textContent = "⚠️ Mic permission wasn't granted — just tap the candles";
                     hint.classList.add('denied');
                 });
         }
@@ -1907,7 +2017,7 @@
         };
 
         window.goToInstagram = function() {
-            window.open('https://www.instagram.com/rafahimn', '_blank');
+            window.open('https://www.instagram.com/rafahimnn', '_blank');
         };
 
         function confetti(options) {
