@@ -315,11 +315,11 @@
 
     <!-- Hidden YouTube player used for the birthday song (audio only) -->
     <div id="ytPlayerWrap" aria-hidden="true">
-        <div id="ytPlayer"></div>
+        <div id="tPlayer"></div>
     </div>
 
     <video class="video-bg" autoplay muted loop playsinline>
-        <source src="https://assets.mixkitre.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp4" type="video/mp4">
+        <source src="https://assets.mixkit.co/videos/preview/mixkit-candles-in-tshe-dark-1327-large.mp" type="video/mp4">
     </video>
     <div class="overlay"></div>
 
@@ -529,7 +529,7 @@
     </div>
 
     <div class="reasons-screen" id="reasonsScreen">
-        <div class="reasons-header"><h1>My favourite memory.. 💖</h1></div>
+        <div class="reasons-header"><h1>Happy Birthday Person.. 💖</h1></div>
         <div class="reasons-container" id="reasonsContainer"></div>
         <div class="reason-counter" id="reasonCounter">Reason 1 of 4</div>
         <button class="reasons-btn" id="reasonsBtn" onclick="handleReasonClick()">Click Here... 💕</button>
@@ -552,10 +552,13 @@
                 <div class="photo-date">Lost in Bengali Lore</div>
                 <div class="photo-caption">May your journey ahead be filled with happiness, success, and endless smiles😊💕</div>
             </div>
-            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/be9ttbc0/image/upload/v1790153533/IMG_8772.jpg.jpg')">
-                <img src="https://res.cloudinary.com/be9ttbc0/image/upload/v1790153533/IMG_8772.jpg.jpg" alt="Together Vibes" class="photo-img">
+            <div class="photo-card" onclick="openLightbox('https://res.cloudinary.com/dpctt0wao/image/upload/v1786s823873/qj1taxj8jw4hyu1c4wvf.jpg')">
+                <img src="https://res.cloudinary.com/dpctt0wao/image/upload/v1786823873/qj1staxj8jw4hyu1c4wvf.jpg" alt="Together Vibes" class="photo-img">
                 <div class="photo-date">Her Smile Says It All</div>
-                <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a person like you❤️</div>
+                <div class="photo-caption">You're truly one of the sweetest girls I know, and I feel lucky to have a friend like you❤️</div>
+            </div>
+
+            
             </div>
         </div>
         <button class="photo-next-btn" onclick="goToVideoScreen()">Again Your Storylane 🎥</button>
@@ -567,16 +570,17 @@
             <div class="video-grid">
                 <!-- ═══ আসল ভিডিও ═══ -->
                 <div class="video-card">
-                    <h3>Happy Birthday Asmuuu...❤️🎂</h3>
+                    <h3>Happy Birthday Othoy❤️🎂</h3>
                     <div class="video-wrapper">
                         <video controls preload="metadata">
-                            <source src="https://res.cloudinary.com/be9ttbc0/video/upload/v1790154687/copy_D86AECD0-20A3-4EC1-8851-220A478044A3.mov" type="video/mp4">
+                            <source src="https://res.cloudinary.com/be9ttbc0/video/upload/v1790154687/copy_D86AECD0-20A3-4EC1-8851-220A478044A3.mov">
                         </video>
                     </div>
                 </div>
                 </div>
 
-               
+
+                    </div>
                 </div>
             </div>
             <button class="video-next-btn" onclick="goToLetterScreen()">See your letter 💌</button>
@@ -596,7 +600,7 @@
             <div class="envelope-hint">Tap the envelope to open it</div>
         </div>
         <div class="letter-container" id="letterContainer">
-            <h2>A Letter for You beautiful 💌</h2>
+            <h2>A Letter for My favourite chapter..  💌</h2>
             <div class="letter-content" id="letterContent"></div>
             <button class="letter-return-btn" onclick="goToSecretScreen()">Again, Happy Birthday Asmuu..</button>
         </div>
@@ -623,10 +627,10 @@
         const CONFIG = {
             month: 8,
             day: 23,
-            hour: 13,
-            minute: 26,
-            age: 17,
-            name: "O00.."
+            hour: 0,
+            minute: 00,
+            age: 22,
+            name: "Asmuu.."
         };
 
         const urlParams = new URLSearchParams(window.location.search);
@@ -1903,7 +1907,7 @@
         };
 
         window.goToInstagram = function() {
-            window.open('https://www.instagram.com/sifaat_sakib?stkn=dzkwOTNzZTVndzZ4&utm_source=qr', '_blank');
+            window.open('https://www.instagram.com/rafahimn', '_blank');
         };
 
         function confetti(options) {
